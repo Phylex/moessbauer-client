@@ -18,7 +18,7 @@ fn main() -> Result<(), std::io::Error> {
     match TcpStream::connect(config.server_addr) {
         Ok(mut stream) => {
             println!("Connected! to {}", config.server_addr);
-            let msg = b"Hello, awaiting Data...";
+            let msg = b"Hello, ...end";
             stream.write(msg).unwrap();
             println!("Sent Hello, awaiting reply");
 
@@ -26,6 +26,10 @@ fn main() -> Result<(), std::io::Error> {
             loop {
                 match stream.read(&mut data) {
                     Ok(chunk_len) => {
+                        if chunk_len == 0 {
+                            println!("Server closed the connection");
+                            break;
+                        }
                         let mut pos = 0;
                         while pos < chunk_len {
                             let bytes_written = data_file.write(&data[pos..chunk_len])?;
